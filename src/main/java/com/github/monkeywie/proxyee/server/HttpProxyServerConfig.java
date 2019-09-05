@@ -5,13 +5,20 @@ import io.netty.handler.ssl.SslContext;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
-
+/**
+ * Http代理的配置信息
+ * */
 public class HttpProxyServerConfig {
+
   private SslContext clientSslCtx;
+  // CA证书的使用者信息
   private String issuer;
+  // CA证书的有效时段
   private Date caNotBefore;
   private Date caNotAfter;
+  // CA私钥用于给动态生成的网站SSL证书签证
   private PrivateKey caPriKey;
+  // 生产一对随机公私钥用于网站SSL证书动态创建
   private PrivateKey serverPriKey;
   private PublicKey serverPubKey;
   private EventLoopGroup proxyLoopGroup;

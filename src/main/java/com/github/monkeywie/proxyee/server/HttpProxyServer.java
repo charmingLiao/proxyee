@@ -25,7 +25,7 @@ import java.security.cert.X509Certificate;
 
 public class HttpProxyServer {
 
-  //http代理隧道握手成功
+  // http代理隧道握手成功
   public final static HttpResponseStatus SUCCESS = new HttpResponseStatus(200,
       "Connection established");
 
@@ -34,22 +34,27 @@ public class HttpProxyServer {
   private HttpProxyInterceptInitializer proxyInterceptInitializer;
   private HttpProxyExceptionHandle httpProxyExceptionHandle;
   private ProxyConfig proxyConfig;
-
-  private EventLoopGroup bossGroup;
-  private EventLoopGroup workerGroup;
+  // 在netty创建ServerBootstrap之前，先创建两个EventLoopGroup，实际上是两个独立的Reactor线程池
+  private EventLoopGroup bossGroup; //负责接收客户端请求
+  private EventLoopGroup workerGroup; // 负责处理IO相关读写操作或者执行系统task、定时task
 
   private void init() {
     if (serverConfig == null) {
       serverConfig = new HttpProxyServerConfig();
     }
+    // 设置配置文件中的proxyLoopGroup为NioEventLoopGroup已经线程池大小
     serverConfig.setProxyLoopGroup(new NioEventLoopGroup(serverConfig.getProxyGroupThreads()));
 
+    // 判断是否Tsl或者ssl
     if (serverConfig.isHandleSsl()) {
       try {
+        // 设置netty channel的ssl
         serverConfig.setClientSslCtx(
             SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE)
                 .build());
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+        // 读取证书和密钥
         X509Certificate caCert;
         PrivateKey caPriKey;
         if (caCertFactory == null) {
@@ -111,6 +116,7 @@ public class HttpProxyServer {
 
   public void start(int port) {
     init();
+    // 先创建两个EventLoopGroup
     bossGroup = new NioEventLoopGroup(serverConfig.getBossGroupThreads());
     workerGroup = new NioEventLoopGroup(serverConfig.getWorkerGroupThreads());
     try {
@@ -123,7 +129,9 @@ public class HttpProxyServer {
 
             @Override
             protected void initChannel(Channel ch) throws Exception {
+              // 在NIO childHandler中 解码
               ch.pipeline().addLast("httpCodec", new HttpServerCodec());
+              // 在NIO childHandler中 解码
               ch.pipeline().addLast("serverHandle",
                   new HttpProxyServerHandle(serverConfig, proxyInterceptInitializer, proxyConfig,
                       httpProxyExceptionHandle));
