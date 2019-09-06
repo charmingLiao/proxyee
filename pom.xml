@@ -3,6 +3,8 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+<!--windows  mvn exec:java -D"exec.mainClass"="com.github.monkeywie.Main"-->
+<!--linux  mvn exec:java -Dexec.mainClass="com.github.monkeywie.Main"-->
   <groupId>com.github.monkeywie</groupId>
   <artifactId>proxyee</artifactId>
   <version>1.0.4</version>
