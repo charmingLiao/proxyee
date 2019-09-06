@@ -242,7 +242,7 @@ public class CertUtil {
   public static void main(String[] args) throws Exception {
     //生成ca证书和私钥
     KeyPair keyPair = CertUtil.genKeyPair();
-    File caCertFile = new File("e:/ssl/Proxyee.crt");
+    File caCertFile = new File("Proxyee.crt");
     if(caCertFile.exists()){
       caCertFile.delete();
     }
