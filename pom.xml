@@ -82,6 +82,17 @@
       <artifactId>bcpkix-jdk15on</artifactId>
       <version>1.58</version>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.28</version>
+    </dependency>
   </dependencies>
 
   <profiles>
@@ -98,6 +109,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
+            <version>3.1.0</version>
             <executions>
               <execution>
                 <phase>package</phase>
@@ -111,9 +123,10 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.1</version>
             <executions>
               <execution>
-                <phase>package</phase>
+                <id>attach-javadocs</id>
                 <goals>
                   <goal>jar</goal>
                 </goals>

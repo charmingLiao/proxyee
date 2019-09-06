@@ -124,7 +124,9 @@ public class HttpProxyServer {
       b.group(bossGroup, workerGroup)
           .channel(NioServerSocketChannel.class)
 //          .option(ChannelOption.SO_BACKLOG, 100)
+          // handler在初始化时就会执行
           .handler(new LoggingHandler(LogLevel.DEBUG))
+          // childHandler会在客户端成功connect后才执行
           .childHandler(new ChannelInitializer<Channel>() {
 
             @Override
@@ -133,6 +135,7 @@ public class HttpProxyServer {
               ch.pipeline().addLast("httpCodec", new HttpServerCodec());
               // 在NIO childHandler中 解码
               ch.pipeline().addLast("serverHandle",
+                  // 实现inboundAdapter
                   new HttpProxyServerHandle(serverConfig, proxyInterceptInitializer, proxyConfig,
                       httpProxyExceptionHandle));
             }
@@ -155,5 +158,7 @@ public class HttpProxyServer {
     workerGroup.shutdownGracefully();
     CertPool.clear();
   }
+
+
 
 }

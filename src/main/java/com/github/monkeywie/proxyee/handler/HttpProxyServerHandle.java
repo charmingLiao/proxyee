@@ -38,6 +38,11 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+
 public class HttpProxyServerHandle extends ChannelInboundHandlerAdapter {
 
   private ChannelFuture cf;
@@ -52,6 +57,8 @@ public class HttpProxyServerHandle extends ChannelInboundHandlerAdapter {
   private HttpProxyExceptionHandle exceptionHandle;
   private List requestList;
   private boolean isConnect;
+
+  private static final Logger logger = LoggerFactory.getLogger(HttpProxyServerHandle.class);
 
   public HttpProxyServerConfig getServerConfig() {
     return serverConfig;
@@ -76,9 +83,14 @@ public class HttpProxyServerHandle extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+    logger.info("msg instanceof HttpRequest");
+    logger.info( (msg instanceof HttpRequest) + "");
+
+
     if (msg instanceof HttpRequest) {
       HttpRequest request = (HttpRequest) msg;
       //第一次建立连接取host和端口号和处理代理握手
+      logger.info(status + "");
       if (status == 0) {
         RequestProto requestProto = ProtoUtil.getRequestProto(request);
         if (requestProto == null) { //bad request
@@ -88,17 +100,24 @@ public class HttpProxyServerHandle extends ChannelInboundHandlerAdapter {
         status = 1;
         this.host = requestProto.getHost();
         this.port = requestProto.getPort();
+        logger.info( this.host  + ": " + this.port);
+
+        logger.info( request.method().name());
         if ("CONNECT".equalsIgnoreCase(request.method().name())) {//建立代理握手
           status = 2;
           HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
               HttpProxyServer.SUCCESS);
           ctx.writeAndFlush(response);
+
+          logger.info( response.toString());
+
           ctx.channel().pipeline().remove("httpCodec");
           //fix issue #42
           ReferenceCountUtil.release(msg);
           return;
         }
       }
+      // 转发新的请求
       interceptPipeline = buildPipeline();
       interceptPipeline.setRequestProto(new RequestProto(host, port, isSsl));
       //fix issue #27
@@ -106,7 +125,12 @@ public class HttpProxyServerHandle extends ChannelInboundHandlerAdapter {
         URL url = new URL(request.uri());
         request.setUri(url.getFile());
       }
+      logger.info( request.uri());
       interceptPipeline.beforeRequest(ctx.channel(), request);
+
+      logger.info("msg instanceof HttpContent");
+      logger.info( (msg instanceof HttpContent) + "");
+
     } else if (msg instanceof HttpContent) {
       if (status != 2) {
         interceptPipeline.beforeRequest(ctx.channel(), (HttpContent) msg);
